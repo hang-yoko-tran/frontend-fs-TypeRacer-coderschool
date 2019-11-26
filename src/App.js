@@ -23,22 +23,22 @@ class App extends React.Component {
       lineView: false,
       startTime: null,
       completed: false,
-      excerpt: this._randomElement(this.props.excerpts)
+      exceprtId: 0,
+      excerpt: ""
     };
   }
 
   async componentDidMount() {
-    // this.intervals = [];
-    this.getExcerpts()
+    this.intervals = [];
+    this.getExcerpts();
     // this.setupCurrentUser();
   }
 
   getExcerpts = async () => {
     const response = await fetch("https://localhost:5000/excerpts");
     const excertps = await response.json();
-    console.log("RES: ", excertps)
+    this._randomElement(excertps);
   };
-
 
   setupCurrentUser = () => {
     const existingToken = sessionStorage.getItem("token");
@@ -62,10 +62,9 @@ class App extends React.Component {
     this.intervals.push(setInterval.apply(null, arguments));
   }
 
-  _randomElement = array => {
-    return this.props.excerpts[
-      Math.floor(Math.random() * this.props.excerpts.length)
-    ];
+  _randomElement = excerpts => {
+    const excerptIdx = Math.floor(Math.random() * excerpts.length);
+    this.setState({excerpt: excerpts[excerptIdx]["body"], exceprtId: excerpts[excerptIdx]["id"] })
   };
 
   _handleInputChange = e => {
@@ -148,17 +147,19 @@ class App extends React.Component {
     const resp = await fetch("https://127.0.0.1:5000/scores", {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Token ${this.state.token}`
+        "Content-Type": "application/json",
+        // Authorization: `Token ${this.state.token}`
       },
       body: JSON.stringify({
         wpm,
         time: elapsed,
-        errorCount: this.state.errorCount
+        error_count: this.state.errorCount,
+        excerpt_id: this.state.exceprtId
       })
     });
     const data = await resp.json();
     if (data.code === 200) {
+      console.log("Score posted")
     } else {
       this.setState({ error: "Could not post score" });
     }
@@ -169,7 +170,7 @@ class App extends React.Component {
     let wpm;
     if (this.state.completed) {
       wpm = (this.state.excerpt.split(" ").length / (elapsed / 1000)) * 60;
-      // this.postScore(wpm, elapsed);
+      this.postScore(wpm, elapsed);
     } else {
       let words = this.state.excerpt.slice(0, this.state.index).split(" ")
         .length;
@@ -203,22 +204,18 @@ class App extends React.Component {
           <span className="errors">{this.state.errorCount}</span>
         </div>
       </>
-    )
-  }
+    );
+  };
 
   renderSignin = () => {
     return (
       <div className="signin">
-          <h1>Please Sign In</h1>
-          <input 
-            autoFocus
-            placeholder="Email"
-          />
-          <input 
-          />
+        <h1>Please Sign In</h1>
+        <input autoFocus placeholder="Email" />
+        <input />
       </div>
-    )
-  }
+    );
+  };
 
   render() {
     return (
@@ -233,7 +230,8 @@ class App extends React.Component {
             <div> Sign In</div>
           )}
         </div>
-        {this.state.token && this.state.token.length > 3 ? this.renderGame() : this.renderSignin()} 
+        {/* {this.state.token && this.state.token.length > 3 ? this.renderGame() : this.renderSignin()}  */}
+        {this.renderGame()}
         <Footer />
       </>
     );
