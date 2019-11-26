@@ -28,9 +28,17 @@ class App extends React.Component {
   }
 
   async componentDidMount() {
-    this.intervals = [];
-    this.setupCurrentUser();
+    // this.intervals = [];
+    this.getExcerpts()
+    // this.setupCurrentUser();
   }
+
+  getExcerpts = async () => {
+    const response = await fetch("https://localhost:5000/excerpts");
+    const excertps = await response.json();
+    console.log("RES: ", excertps)
+  };
+
 
   setupCurrentUser = () => {
     const existingToken = sessionStorage.getItem("token");
@@ -200,7 +208,7 @@ class App extends React.Component {
 
   renderSignin = () => {
     return (
-      <div classname="signin">
+      <div className="signin">
           <h1>Please Sign In</h1>
           <input 
             autoFocus
